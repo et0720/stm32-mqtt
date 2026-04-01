@@ -2,14 +2,13 @@
 
 > STM32F103 + ESP8266 MQTT edge node, with bare-metal / FreeRTOS dual-mode runtime.
 
-一个适合放到 GitHub 作品集里的嵌入式物联网示例项目。设备基于 `STM32F103C8`、`ESP8266`、`Sth30`、`BH1750` 和 OLED 屏幕构建，可通过 Wi-Fi 接入 MQTT Broker，周期上报环境数据，订阅控制主题实现 LED 远程开关，并在本地屏幕显示运行状态。
+设备基于 `STM32F103C8`、`ESP8266`、`Sth30`、`BH1750` 和 OLED 屏幕构建，可通过 Wi-Fi 接入 MQTT Broker，周期上报环境数据，订阅控制主题实现 LED 远程开关，并在本地屏幕显示运行状态。
 
 ## 项目亮点
 
 - 双运行模式：支持裸机 `super-loop` 与 `FreeRTOS` 任务调度，通过 [`User/app_config.h`](User/app_config.h) 一键切换
 - 分层清晰：串口驱动、ESP8266 AT 封装、MQTT 业务逻辑、应用调度相互解耦
 - 可观测性完整：OLED 状态页、`USART1` 调试日志、`ATTEST:AT+...` 透传测试命令
-- 面向公开仓库：默认关闭 Wi-Fi 自动连接，避免把真实 SSID / 密码提交到 GitHub
 
 ## 功能概览
 
