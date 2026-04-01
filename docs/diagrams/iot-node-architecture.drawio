@@ -1,0 +1,94 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36" version="29.6.6">
+  <diagram name="第 1 页" id="QsD774sihRpn1TtVAOAE">
+    <mxGraphModel dx="834" dy="459" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="OptrKp3CbA-ARA8DQ3IM-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font dir=&quot;auto&quot; style=&quot;vertical-align: inherit;&quot;&gt;&lt;font dir=&quot;auto&quot; style=&quot;vertical-align: inherit;&quot;&gt;&lt;font dir=&quot;auto&quot; style=&quot;vertical-align: inherit;&quot;&gt;&lt;font dir=&quot;auto&quot; style=&quot;vertical-align: inherit;&quot;&gt;ESP8266&lt;/font&gt;&lt;/font&gt;&lt;/font&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="80" x="80" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="OptrKp3CbA-ARA8DQ3IM-7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font dir=&quot;auto&quot; style=&quot;vertical-align: inherit;&quot;&gt;&lt;font dir=&quot;auto&quot; style=&quot;vertical-align: inherit;&quot;&gt;STM32F103C8T6&lt;/font&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="140" x="160" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="OptrKp3CbA-ARA8DQ3IM-25" edge="1" parent="1" source="OptrKp3CbA-ARA8DQ3IM-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="OptrKp3CbA-ARA8DQ3IM-4" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="OptrKp3CbA-ARA8DQ3IM-8" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font dir=&quot;auto&quot; style=&quot;vertical-align: inherit;&quot;&gt;&lt;font dir=&quot;auto&quot; style=&quot;vertical-align: inherit;&quot;&gt;MQTT Broker&lt;/font&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="80" x="80" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="OptrKp3CbA-ARA8DQ3IM-9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font dir=&quot;auto&quot; style=&quot;vertical-align: inherit;&quot;&gt;&lt;font dir=&quot;auto&quot; style=&quot;vertical-align: inherit;&quot;&gt;&lt;font dir=&quot;auto&quot; style=&quot;vertical-align: inherit;&quot;&gt;&lt;font dir=&quot;auto&quot; style=&quot;vertical-align: inherit;&quot;&gt;OLED&lt;/font&gt;&lt;/font&gt;&lt;/font&gt;&lt;/font&gt;&lt;span style=&quot;color: rgba(0, 0, 0, 0); font-family: monospace; font-size: 0px; text-align: start; text-wrap-mode: nowrap;&quot;&gt;&lt;font dir=&quot;auto&quot; style=&quot;vertical-align: inherit;&quot;&gt;&lt;font dir=&quot;auto&quot; style=&quot;vertical-align: inherit;&quot;&gt;%3CmxGraphModel%3E%3Croot%3E%3CmxCell%20id%3D%220%22%2F%3E%3CmxCell%20id%3D%221%22%20parent%3D%220%22%2F%3E%3CmxCell%20id%3D%222%22%20parent%3D%221%22%20style%3D%22rounded% 3D0%3BwhiteSpace%3Dwrap%3Bhtml%3D1%3B%22%20value%3D%22%26lt%3Bfont%20dir%3D%26quot%3Bauto%26quot%3B%20style%3D%26quot%3Bvertical-align%3A%20inherit%3B%26quot%3B%26lt%3Bfont%26gt%3B%26lt%3B%2Ffont%26gt%3B%22%20vertex %3D%221%22%3E%3CmxGeometry%20height%3D%2230%22%20width%3D%2280%22%20x%3D%2240%22%20y%3D%22220%22%20as%3D%22geometry%22%2F%3E%3C%2FmxCell%3E%3C%2Froot%3E%3C%2FmxGraphModel%3E&lt;/font&gt;&lt;/font&gt;&lt;/span&gt;&lt;span style=&quot;color: rgba(0, 0, 0, 0); font-family: monospace; font-size: 0px; text-align: start; text-wrap-mode: nowrap;&quot;&gt;&lt;font dir=&quot;auto&quot; style=&quot;vertical-align: inherit;&quot;&gt;&lt;font dir=&quot;auto&quot; style=&quot;vertical-align: inherit;&quot;&gt;%3CmxGraphModel%3E%3Croot%3E%3CmxCell%20id%3D%220%22%2F%3E%3CmxCell%20id%3D%221%22%20parent%3D%220%22%2F%3E%3CmxCell%20id%3D%222%22%20parent%3D%221%22%20style%3D%22rounded% 3D0%3BwhiteSpace%3Dwrap%3Bhtml%3D1%3B%22%20value%3D%22%26lt%3Bfont%20dir%3D%26quot%3Bauto%26quot%3B%20style%3D%26quot%3Bvertical-align%3A%20inherit%3B%26quot%3B%26lt%3Bfont%26gt%3B%26lt%3B%2Ffont%26gt%3B%22%20vertex %3D%221%22%3E%3CmxGeometry%20height%3D%2230%22%20width%3D%2280%22%20x%3D%2240%22%20y%3D%22220%22%20as%3D%22geometry%22%2F%3E%3C%2FmxCell%3E%3C%2Froot%3E%3C%2FmxGraphModel%3E&lt;/font&gt;&lt;/font&gt;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="30" width="80" x="190" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="OptrKp3CbA-ARA8DQ3IM-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font dir=&quot;auto&quot; style=&quot;vertical-align: inherit;&quot;&gt;&lt;font dir=&quot;auto&quot; style=&quot;vertical-align: inherit;&quot;&gt;&lt;font dir=&quot;auto&quot; style=&quot;vertical-align: inherit;&quot;&gt;&lt;font dir=&quot;auto&quot; style=&quot;vertical-align: inherit;&quot;&gt;MQTTX&lt;/font&gt;&lt;/font&gt;&lt;/font&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="80" x="80" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="OptrKp3CbA-ARA8DQ3IM-12" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font dir=&quot;auto&quot; style=&quot;vertical-align: inherit;&quot;&gt;&lt;font dir=&quot;auto&quot; style=&quot;vertical-align: inherit;&quot;&gt;SHT30&lt;/font&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="80" x="300" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="OptrKp3CbA-ARA8DQ3IM-13" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;font dir=&quot;auto&quot; style=&quot;vertical-align: inherit;&quot;&gt;&lt;font dir=&quot;auto&quot; style=&quot;vertical-align: inherit;&quot;&gt;BH1750&lt;/font&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="80" x="390" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="OptrKp3CbA-ARA8DQ3IM-15" edge="1" parent="1" style="endArrow=classic;startArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="119.52000000000001" y="450" as="sourcePoint" />
+            <mxPoint x="119.52000000000001" y="390" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="OptrKp3CbA-ARA8DQ3IM-17" edge="1" parent="1" style="endArrow=classic;startArrow=classic;html=1;rounded=0;" value="WIFI">
+          <mxGeometry height="50" relative="1" width="50" x="0.0159" as="geometry">
+            <mxPoint as="offset" />
+            <mxPoint x="119.52" y="360" as="sourcePoint" />
+            <mxPoint x="119.52" y="300" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="OptrKp3CbA-ARA8DQ3IM-18" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points">
+              <mxPoint x="229.52" y="220" />
+            </Array>
+            <mxPoint x="229.52" y="220" as="sourcePoint" />
+            <mxPoint x="229.52" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="OptrKp3CbA-ARA8DQ3IM-28" connectable="0" parent="OptrKp3CbA-ARA8DQ3IM-18" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="I2C" vertex="1">
+          <mxGeometry relative="1" x="-0.3543" y="-2" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="OptrKp3CbA-ARA8DQ3IM-22" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="340" y="270" as="sourcePoint" />
+            <mxPoint x="260" y="220" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="OptrKp3CbA-ARA8DQ3IM-29" connectable="0" parent="OptrKp3CbA-ARA8DQ3IM-22" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="I2C" vertex="1">
+          <mxGeometry relative="1" x="0.1038" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="OptrKp3CbA-ARA8DQ3IM-23" edge="1" parent="1" source="OptrKp3CbA-ARA8DQ3IM-13" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="OptrKp3CbA-ARA8DQ3IM-7" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="350" y="250" as="sourcePoint" />
+            <mxPoint x="270" y="200" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="OptrKp3CbA-ARA8DQ3IM-30" connectable="0" parent="OptrKp3CbA-ARA8DQ3IM-23" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="I2C" vertex="1">
+          <mxGeometry relative="1" x="0.1298" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="OptrKp3CbA-ARA8DQ3IM-24" edge="1" parent="1" source="OptrKp3CbA-ARA8DQ3IM-4" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" target="OptrKp3CbA-ARA8DQ3IM-7" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="210" y="270" as="sourcePoint" />
+            <mxPoint x="190" y="230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="OptrKp3CbA-ARA8DQ3IM-27" connectable="0" parent="OptrKp3CbA-ARA8DQ3IM-24" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="UART" vertex="1">
+          <mxGeometry relative="1" x="-0.0097" y="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

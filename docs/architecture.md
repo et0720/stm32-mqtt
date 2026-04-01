@@ -141,3 +141,11 @@ FreeRTOS 模式下，业务被拆成多个明确任务：
 - 串口中断 + FIFO + 状态机解析的组合设计
 - 如何避免多个任务同时访问 ESP8266 和 OLED
 - 为什么公开仓库默认关闭 Wi-Fi 自动连接
+
+## 8. 配图文件
+
+- 设备照片：[`docs/images/device-photo.jpg`](images/device-photo.jpg)
+- 硬件框图：[`docs/images/hardware-block-diagram.png`](images/hardware-block-diagram.png)
+- MQTT 示意图：[`docs/images/mqtt-architecture.png`](images/mqtt-architecture.png)
+- 原理图：[`docs/images/schematic.png`](images/schematic.png)
+- Draw.io 源文件：[`docs/diagrams/iot-node-architecture.drawio`](diagrams/iot-node-architecture.drawio)

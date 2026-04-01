@@ -55,6 +55,25 @@
 更详细的分层与数据流说明见：
 
 - [`docs/architecture.md`](docs/architecture.md)
+- 架构图源文件：[`docs/diagrams/iot-node-architecture.drawio`](docs/diagrams/iot-node-architecture.drawio)
+
+## 项目图片
+
+### 实物图
+
+![设备实物图](docs/images/device-photo.jpg)
+
+### 硬件框图
+
+![硬件框图](docs/images/hardware-block-diagram.png)
+
+### MQTT 通信示意
+
+![MQTT 通信示意](docs/images/mqtt-architecture.png)
+
+### 原理图
+
+![原理图](docs/images/schematic.png)
 
 ## 默认配置
 
@@ -65,8 +84,6 @@
 - `APP_WIFI_AUTO_CONNECT_ENABLE = 0U`
 - `APP_WIFI_AUTO_SSID = "YOUR_WIFI_SSID"`
 - `APP_WIFI_AUTO_PASSWORD = "YOUR_WIFI_PASSWORD"`
-
-
 - 默认通过 `USART1` 手动下发联网命令，可修改为自动联网
 
 
