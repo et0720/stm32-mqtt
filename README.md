@@ -59,7 +59,7 @@
 
 ## 默认配置
 
-出于公开仓库安全性考虑，当前默认配置位于 [`User/app_config.h`](User/app_config.h)：
+当前默认配置位于 [`User/app_config.h`](User/app_config.h)：
 
 - `APP_FREERTOS_ENABLE = 1U`
 - `APP_USART1_ENABLE = 1U`
@@ -67,11 +67,9 @@
 - `APP_WIFI_AUTO_SSID = "YOUR_WIFI_SSID"`
 - `APP_WIFI_AUTO_PASSWORD = "YOUR_WIFI_PASSWORD"`
 
-这意味着：
 
 - 默认通过 `USART1` 手动下发联网命令
-- 不会在仓库里暴露真实 Wi-Fi 凭据
-- 如果你想演示“上电自动联网”，只需要把自动联网开关改回 `1U`
+
 
 ## MQTT 主题
 
@@ -149,7 +147,6 @@ led=0
 | `third_party/` | FreeRTOS 内核源码 |
 | `docs/` | GitHub 友好的补充文档 |
 
-`.gitignore` 已排除 `Objects/`、`Listings/`、Keil 用户文件和本地构建产物，方便整理成干净仓库。
 
 ## 构建环境
 
@@ -158,7 +155,6 @@ led=0
 - `Keil.STM32F1xx_DFP 2.3.0`
 - 支持 MQTT AT 指令的 `ESP-AT` 固件
 
-最近一次本地构建记录显示 `0 Error(s), 0 Warning(s)`。
 
 ## 已知限制
 
