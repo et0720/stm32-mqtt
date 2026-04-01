@@ -1,0 +1,37 @@
+# Keil build outputs
+Objects/
+Listings/
+*.axf
+*.bin
+*.build_log.htm
+*.crf
+*.d
+*.dep
+*.hex
+*.htm
+*.lnp
+*.lst
+*.map
+*.o
+*.sct
+
+# Keil / IDE user files
+.vscode/
+DebugConfig/
+Project.uvoptx
+Project.uvguix.*
+*.uvguix.*
+*.eprj
+RTE/Device/**/*.dbgconf
+RTE/Device/**/*.dbgconf.base@*
+
+# Local archives and backups
+*_backup/
+*.zip
+
+# Logs
+*.log
+
+# Temporary / OS files
+Thumbs.db
+.DS_Store

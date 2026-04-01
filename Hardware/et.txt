@@ -1,0 +1,1 @@
++MQTTSUBRECV:linkId,"topic",payloadLen,payload
