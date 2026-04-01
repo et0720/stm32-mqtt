@@ -67,7 +67,7 @@
 - `APP_WIFI_AUTO_PASSWORD = "YOUR_WIFI_PASSWORD"`
 
 
-- 默认通过 `USART1` 手动下发联网命令
+- 默认通过 `USART1` 手动下发联网命令，可修改为自动联网
 
 
 ## MQTT 主题
