@@ -1,8 +1,8 @@
 # LOL 边缘节点项目
 
-> STM32F103 + ESP8266 MQTT edge node, with bare-metal / FreeRTOS dual-mode runtime.
+> STM32F103 + ESP-WROOM-02 MQTT edge node, with bare-metal / FreeRTOS dual-mode runtime.
 
-设备基于 `STM32F103C8`、`ESP8266`、`Sth30`、`BH1750` 和 OLED 屏幕构建，可通过 Wi-Fi 接入 MQTT Broker，周期上报环境数据，订阅控制主题实现 LED 远程开关，并在本地屏幕显示运行状态。
+设备基于 `STM32F103C8`、`ESP-WROOM-02 (ESP8266)`、`Sth30`、`BH1750` 和 OLED 屏幕构建，可通过 Wi-Fi 接入 MQTT Broker，周期上报环境数据，订阅控制主题实现 LED 远程开关，并在本地屏幕显示运行状态。
 
 ## 项目亮点
 
@@ -12,7 +12,7 @@
 
 ## 功能概览
 
-- 通过 `ESP8266` 连接 Wi-Fi 与 MQTT Broker
+- 通过 `ESP-WROOM-02` 连接 Wi-Fi 与 MQTT Broker
 - 周期发布温湿度、光照和 LED 状态
 - 订阅控制主题并解析 `led=0/1`
 - 支持 `USART1` 手动发送 `WIFI:ssid,password` 重新联网
@@ -23,11 +23,25 @@
 ## 硬件组成
 
 - `STM32F103C8`
-- `ESP8266`
+- `ESP-WROOM-02 (ESP8266)`
 - I2C OLED
 - `Sth30` 温湿度传感器
 - `BH1750` 光照传感器
 - `PA1` 低电平点亮 LED
+
+## ESP 固件与串口说明
+
+- 本项目当前使用 Espressif 官方发布的 `ESP-WROOM-02-AT-V2.3.0.0` 固件。
+- 根据 Espressif 官方文档，`ESP-WROOM-02` 系列默认发布固件的 AT 命令口并不是模块丝印上的 `TX/RX(GPIO1/GPIO3)`，而是默认启用了 `UART0 swap`，出厂参数通常为 `TX=GPIO15`、`RX=GPIO13`、`CTS=GPIO3`、`RTS=GPIO1`。
+- 为了匹配本项目原理图中的 STM32 `USART2` 连线，本项目已将该固件的 AT 命令口改回 `GPIO1 (TX)` / `GPIO3 (RX)`，也就是原理图中连接到 STM32 的那组 `TX/RX` 引脚。
+- Espressif 官方文档说明，ESP8266 平台的 AT 命令口只有两组可选引脚：`GPIO15/GPIO13` 或 `GPIO1/GPIO3`；本项目选择 `GPIO1/GPIO3` 这一组，以便和原理图保持一致。
+- 因此，如果直接刷入未修改引脚配置的官方原始 bin，而不保留当前工程使用的 AT 口配置，原理图中的 STM32 与 ESP 串口连线将无法直接对应。
+
+参考资料：
+
+- <https://docs.espressif.com/projects/esp-at/en/release-v2.3.0.0_esp8266/AT_Binary_Lists/ESP8266_AT_binaries.html>
+- <https://docs.espressif.com/projects/esp-at/en/release-v2.3.0.0_esp8266/Get_Started/Hardware_connection.html>
+- <https://docs.espressif.com/projects/esp-at/en/release-v2.3.0.0_esp8266/Compile_and_Develop/How_to_set_AT_port_pin.html>
 
 ## 引脚分配
 
@@ -35,8 +49,8 @@
 | --- | --- | --- |
 | 调试串口 TX | `PA9` | `USART1_TX`，连接 USB 转串口接收端 |
 | 调试串口 RX | `PA10` | `USART1_RX`，连接 USB 转串口发送端 |
-| ESP8266 TX | `PA2` | `USART2_TX`，接 `ESP RX` |
-| ESP8266 RX | `PA3` | `USART2_RX`，接 `ESP TX` |
+| ESP RX (`GPIO3` / `U0RXD`) | `PA2` | `USART2_TX`，STM32 发送到 ESP 接收脚 |
+| ESP TX (`GPIO1` / `U0TXD`) | `PA3` | `USART2_RX`，STM32 从 ESP 发送脚接收 |
 | I2C1 SCL | `PB6` | OLED、温湿度、光照传感器共用 |
 | I2C1 SDA | `PB7` | OLED、温湿度、光照传感器共用 |
 | LED1 | `PA1` | 低电平点亮 |
@@ -169,12 +183,12 @@ led=0
 - `Keil uVision5`
 - `ARMCC 5.06 update 5 (build 528)`
 - `Keil.STM32F1xx_DFP 2.3.0`
-- 支持 MQTT AT 指令的 `ESP-AT` 固件
+- Espressif 官方 `ESP-WROOM-02-AT-V2.3.0.0` 固件（AT 命令口已改为 `GPIO1/GPIO3` 以匹配本项目原理图）
 
 
 ## 已知限制
 
-- 当前 MQTT 方案依赖 ESP8266 的 AT 固件能力
+- 当前 MQTT 方案依赖 ESP8266 的 AT 固件能力，且依赖当前固件中已调整好的 AT 串口引脚配置
 - OLED 为简化状态页，主要服务调试与演示
 - `LED2_*` 接口仍是预留桩函数
 - 主题与 Broker 主要通过宏配置，未做运行时持久化
