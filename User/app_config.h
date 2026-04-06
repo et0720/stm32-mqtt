@@ -16,9 +16,9 @@
 #define APP_VERBOSE_BOOT_LOG             0U
 
 /* Wi-Fi provisioning */
-#define APP_WIFI_AUTO_CONNECT_ENABLE     1U
-#define APP_WIFI_AUTO_SSID               "et1"
-#define APP_WIFI_AUTO_PASSWORD           "12345678"
+#define APP_WIFI_AUTO_CONNECT_ENABLE     0U
+#define APP_WIFI_AUTO_SSID               "your-ssid"
+#define APP_WIFI_AUTO_PASSWORD           "your-password"
 #define APP_WIFI_AUTO_START_DELAY_MS     1500U
 
 #if ((APP_WIFI_AUTO_CONNECT_ENABLE == 0U) && (APP_USART1_ENABLE == 0U))

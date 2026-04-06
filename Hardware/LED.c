@@ -37,14 +37,14 @@ void LED1_Turn(void)
 	}
 }
 
-void LED2_ON(void) /* 预留接口，当前硬件未实现 LED2。 */
+void LED2_ON(void)
 {
 }
 
-void LED2_OFF(void) /* 预留接口，当前硬件未实现 LED2。 */
+void LED2_OFF(void)
 {
 }
 
-void LED2_Turn(void) /* 预留接口，当前硬件未实现 LED2。 */
+void LED2_Turn(void)
 {
 }
