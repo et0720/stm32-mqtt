@@ -20,6 +20,7 @@
 static AppTasks_Context MainTasks;
 #endif
 
+/* Mirror the row-rewrite helper used elsewhere so the boot UI never leaves stale characters. */
 static void OLED_ShowLine(uint8_t Line, const char *Text)
 {
 	OLED_ShowString(Line, 1, "                ");
@@ -27,6 +28,7 @@ static void OLED_ShowLine(uint8_t Line, const char *Text)
 }
 
 #if (APP_USART1_ENABLE == 0U)
+/* Keep USART1 pins in a harmless input state when the debug UART is compiled out. */
 static void Main_ConfigUSART1PinsIdle(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
@@ -69,6 +71,7 @@ static void Main_ShowBootScreen(void)
 #endif
 }
 
+/* Initialize peripherals, print boot diagnostics, then hand control to RTOS or the bare-metal loop. */
 int main(void)
 {
 	/* FreeRTOS 在 Cortex-M3 上要求已实现的优先级位全部用于抢占优先级。 */
@@ -134,12 +137,7 @@ int main(void)
 #endif
 
 #if (APP_FREERTOS_ENABLE != 0U)
-	/* 从这里开始，业务逻辑转入 RTOS 任务中执行，不再留在 main() 里轮询。 */
-	/* 启动顺序是：
-	 * 1. 先调用 AppFreeRTOS_Start() 创建 RTOS 资源和业务任务；
-	 * 2. 任务创建成功后，再调用 vTaskStartScheduler() 启动调度器；
-	 * 3. 调度器启动后，main() 不再承担业务循环，只保留异常兜底路径。
-	 */
+	/* Create tasks first; they only start running after vTaskStartScheduler(). */
 	if (AppFreeRTOS_Start() == 0U)
 	{
 		printf("[BOOT] task create failed\r\n");
@@ -152,10 +150,8 @@ int main(void)
 	}
 
 	printf("[BOOT] start scheduler\r\n");
-	/* vTaskStartScheduler() 之后由 FreeRTOS 统一调度，上面创建的任务会在这里开始运行。
-	 * 注意：任务虽然在 AppFreeRTOS_Start() 里就被创建出来了，但只有调度器启动后它们才会被真正切换执行。
-	 */
 	vTaskStartScheduler();
+	/* Reaching here means scheduler startup failed, typically because heap is exhausted. */
 	printf("[BOOT] scheduler returned\r\n");
 	OLED_ShowLine(1, "RTOS ERROR");
 	OLED_ShowLine(2, "SCHED EXIT");

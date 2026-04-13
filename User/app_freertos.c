@@ -13,49 +13,48 @@
 #include <stdarg.h>
 #include <string.h>
 
-/* app_freertos.c
- * 这个文件负责把应用层业务拆分到 FreeRTOS 环境中运行，主要包含：
- * 1. RTOS 资源创建，例如队列、信号量、互斥量；
- * 2. 任务之间的协作逻辑，例如采样、显示、链路维护、命令处理；
- * 3. 中断与任务之间的衔接，例如串口中断通过信号量唤醒任务；
- * 4. RTOS 异常钩子，例如内存申请失败和栈溢出时的停机处理。
- */
-
-#define APP_RTOS_LINK_TASK_STACK_WORDS       512U /* 链路任务逻辑最重，要处理 ESP8266、AT 命令、MQTT 等流程，栈给得更大。 */
-#define APP_RTOS_LINK_TASK_PRIORITY          3U   /* 链路任务优先级最高，确保网络状态机和收发处理更及时。 */
-#define APP_RTOS_TELEMETRY_TASK_STACK_WORDS  512U /* 遥测任务会做显示和发布转发，局部变量相对较多，栈适当放大。 */
-#define APP_RTOS_TELEMETRY_TASK_PRIORITY     2U   /* 遥测任务属于常规业务优先级，低于链路，高于空闲任务。 */
-#define APP_RTOS_SENSOR_TASK_STACK_WORDS     256U /* 采样任务逻辑较简单，以周期读取为主，较小栈即可。 */
-#define APP_RTOS_SENSOR_TASK_PRIORITY        2U   /* 采样任务与遥测同级，靠时间片轮转共享 CPU。 */
-#define APP_RTOS_COMMAND_TASK_STACK_WORDS    256U /* 命令任务只做串口组包和投递，栈需求较小。 */
-#define APP_RTOS_COMMAND_TASK_PRIORITY       2U   /* 命令任务与采样/遥测同级，避免长期压制其它业务任务。 */
-#define APP_RTOS_SENSOR_QUEUE_LENGTH         1U   /* 传感器队列只保留“最新一帧”数据，因此长度设为 1 并配合覆盖写入。 */
-#define APP_RTOS_PUBLISH_QUEUE_LENGTH        2U   /* 发布队列做轻量缓冲，允许采样与链路发布之间短暂解耦。 */
-#define APP_RTOS_WIFI_QUEUE_LENGTH           4U   /* 串口命令队列允许积压少量待执行命令，避免输入稍快就丢包。 */
-#define APP_RTOS_SENSOR_PERIOD_MS            MQTTX_TELEMETRY_INTERVAL_MS /* 采样周期与遥测发送周期保持一致，减少无效采样。 */
+/* 链接任务拥有 ESP8266 的访问权，因此它获得最高优先级和最大的堆栈。 */
+#define APP_RTOS_LINK_TASK_STACK_WORDS       512U
+#define APP_RTOS_LINK_TASK_PRIORITY          3U
+#define APP_RTOS_TELEMETRY_TASK_STACK_WORDS  512U
+#define APP_RTOS_TELEMETRY_TASK_PRIORITY     2U
+#define APP_RTOS_SENSOR_TASK_STACK_WORDS     256U
+#define APP_RTOS_SENSOR_TASK_PRIORITY        2U
+#define APP_RTOS_COMMAND_TASK_STACK_WORDS    256U
+#define APP_RTOS_COMMAND_TASK_PRIORITY       2U
+/* 传感器队列仅保留最新的样本；其他队列仅吸收短暂的突发数据。 */
+#define APP_RTOS_SENSOR_QUEUE_LENGTH         1U
+#define APP_RTOS_PUBLISH_QUEUE_LENGTH        2U
+#define APP_RTOS_WIFI_QUEUE_LENGTH           4U
+#define APP_RTOS_SENSOR_PERIOD_MS            MQTTX_TELEMETRY_INTERVAL_MS
 
 typedef struct
 {
-    uint8_t MqttReady; /* 当前 MQTT 链路是否可用，供其它任务快速判断是否允许发布。 */
-    uint8_t LedState;  /* 当前远端或链路逻辑维护的 LED 状态，用于显示和上报。 */
+    uint8_t MqttReady;
+    uint8_t LedState;
 } AppRTOS_SharedState;
 
-static AppTasks_Context AppLinkContext;              /* 链路上下文，集中保存 WiFi/MQTT 运行状态。 */
-static AppRTOS_SharedState AppSharedState;           /* 多任务共享的轻量状态，通过互斥量保护。 */
-static QueueHandle_t AppSensorQueue = NULL;          /* 采样任务 -> 遥测任务：传递最新采样值。 */
-static QueueHandle_t AppPublishQueue = NULL;         /* 遥测任务 -> 链路任务：传递待发布消息。 */
-static QueueHandle_t AppWiFiCommandQueue = NULL;     /* 命令任务 -> 链路任务：传递待执行 WiFi 命令。 */
-static SemaphoreHandle_t AppUsart1RxSemaphore = NULL; /* USART1 接收事件信号量。 */
-static SemaphoreHandle_t AppUsart2RxSemaphore = NULL; /* USART2 接收事件信号量。 */
-static SemaphoreHandle_t AppLogMutex = NULL;         /* 串口日志互斥量，防止输出串行化被打乱。 */
-static SemaphoreHandle_t AppOLEDMutex = NULL;        /* OLED/I2C 访问互斥量。 */
-static SemaphoreHandle_t AppESPCommandMutex = NULL;  /* ESP8266 命令互斥量。 */
-static SemaphoreHandle_t AppStateMutex = NULL;       /* 共享状态互斥量。 */
-static volatile uint8_t AppLinkBootReady = 0U;       /* 链路任务启动完成标记，供采样任务延后启动。 */
+static AppTasks_Context AppLinkContext;
+static AppRTOS_SharedState AppSharedState;
+static QueueHandle_t AppSensorQueue = NULL;
+static QueueHandle_t AppPublishQueue = NULL;
+static QueueHandle_t AppWiFiCommandQueue = NULL;
+static SemaphoreHandle_t AppUsart1RxSemaphore = NULL;
+static SemaphoreHandle_t AppUsart2RxSemaphore = NULL;
+static SemaphoreHandle_t AppLogMutex = NULL;
+static SemaphoreHandle_t AppOLEDMutex = NULL;
+static SemaphoreHandle_t AppESPCommandMutex = NULL;
+static SemaphoreHandle_t AppStateMutex = NULL;
+static volatile uint8_t AppLinkBootReady = 0U;
 
-/* 更新共享状态。
- * 这里用互斥量保护，是因为链路任务会写状态，遥测任务等会读状态。
- */
+/* 将带符号的 0.1°C 传感器值转换为显示安全的分数位。 */
+static uint16_t AppRTOS_TemperatureFraction(int16_t Temperature)
+{
+    /* C 语言在 % 运算中保留符号，因此对分数位进行归一化以用于显示/JSON。 */
+    return (uint16_t)((Temperature >= 0) ? (Temperature % 10) : (-Temperature % 10));
+}
+
+/* 链接任务修改此状态，而遥测/显示路径仅采样快照。 */
 static void AppRTOS_SetSharedState(uint8_t MqttReady, uint8_t LedState)
 {
     if (AppStateMutex != NULL)
@@ -72,9 +71,7 @@ static void AppRTOS_SetSharedState(uint8_t MqttReady, uint8_t LedState)
     }
 }
 
-/* 读取共享状态。
- * 调用者可以只关心某一个字段，因此允许传入空指针跳过不需要的输出。
- */
+/* 读取一致的 MQTT 就绪/LED 状态快照，而不向调用者暴露锁的详细信息。 */
 static void AppRTOS_GetSharedState(uint8_t *MqttReady, uint8_t *LedState)
 {
     if (AppStateMutex != NULL)
@@ -97,6 +94,7 @@ static void AppRTOS_GetSharedState(uint8_t *MqttReady, uint8_t *LedState)
     }
 }
 
+/* 为仍使用命令式绘制的模块序列化直接 OLED 访问。 */
 void AppRTOS_OLEDLock(void)
 {
     if (AppOLEDMutex != NULL)
@@ -105,6 +103,7 @@ void AppRTOS_OLEDLock(void)
     }
 }
 
+/* 释放共享的 OLED/I2C 锁。 */
 void AppRTOS_OLEDUnlock(void)
 {
     if (AppOLEDMutex != NULL)
@@ -113,6 +112,7 @@ void AppRTOS_OLEDUnlock(void)
     }
 }
 
+/* 通过 RTOS 安全的包装器清除 OLED。 */
 void AppRTOS_OLEDClear(void)
 {
     AppRTOS_OLEDLock();
@@ -120,6 +120,7 @@ void AppRTOS_OLEDClear(void)
     AppRTOS_OLEDUnlock();
 }
 
+/* 通过 RTOS 安全的包装器重写一行 OLED。 */
 void AppRTOS_OLEDShowLine(uint8_t Line, const char *Text)
 {
     AppRTOS_OLEDLock();
@@ -128,14 +129,13 @@ void AppRTOS_OLEDShowLine(uint8_t Line, const char *Text)
     AppRTOS_OLEDUnlock();
 }
 
+/* 暴露 ESP 命令互斥锁，以便低级代码加入相同的序列化契约。 */
 SemaphoreHandle_t AppRTOS_GetESPCommandMutex(void)
 {
     return AppESPCommandMutex;
 }
 
-/* 串口接收中断里的任务唤醒入口。
- * 中断里不做重逻辑，只负责通过信号量告诉对应任务“有新数据到了”。
- */
+/* ISR 仅唤醒等待的任务；所有解析都留在任务上下文中。 */
 BaseType_t AppRTOS_GiveRxSemaphoreFromISR(USART_TypeDef *USARTx)
 {
     BaseType_t HigherPriorityTaskWoken = pdFALSE;
@@ -152,9 +152,7 @@ BaseType_t AppRTOS_GiveRxSemaphoreFromISR(USART_TypeDef *USARTx)
     return HigherPriorityTaskWoken;
 }
 
-/* 带互斥保护的日志输出。
- * 先格式化到本地缓冲区，再一次性发串口，降低多任务输出互相穿插的概率。
- */
+/* 本地格式化并一次性发送，以便不同任务的日志行不会交错。 */
 int AppRTOS_LogPrintf(const char *Format, ...)
 {
     char Buffer[256];
@@ -187,9 +185,7 @@ int AppRTOS_LogPrintf(const char *Format, ...)
     return Length;
 }
 
-/* 在 OLED 上显示致命错误信息。
- * 发生不可恢复错误时，不再尝试保留原界面，直接全屏改成故障提示。
- */
+/* 当恢复不再有意义时，用硬故障屏幕替换用户界面。 */
 static void AppFreeRTOS_ShowFatal(const char *Line1, const char *Line2)
 {
     AppRTOS_OLEDLock();
@@ -206,9 +202,7 @@ static void AppFreeRTOS_ShowFatal(const char *Line1, const char *Line2)
     AppRTOS_OLEDUnlock();
 }
 
-/* 读取一帧传感器数据。
- * 成功时填充 Sample 并置 Valid 标志；失败时在 OLED 上提示传感器/I2C 故障。
- */
+/* OLED 和两个传感器共享 I2C1，因此采样必须相对于显示刷新进行序列化。 */
 static uint8_t AppRTOS_ReadSensorSample(AppTasks_SensorSample *Sample)
 {
     if (Sample == 0)
@@ -217,7 +211,7 @@ static uint8_t AppRTOS_ReadSensorSample(AppTasks_SensorSample *Sample)
     }
 
     memset(Sample, 0, sizeof(*Sample));
-    /* OLED、STH30、BH1750 共用 I2C1，因此采样期间要和显示刷新互斥。 */
+
     AppRTOS_OLEDLock();
     if ((STH30_ReadData(&Sample->Climate) != 0U) || (BH1750_ReadLux(&Sample->Lux) != 0U))
     {
@@ -234,6 +228,7 @@ static uint8_t AppRTOS_ReadSensorSample(AppTasks_SensorSample *Sample)
     return 1U;
 }
 
+/* 将最新的采样值渲染到 OLED 上，而不回溯到传感器驱动程序。 */
 static void AppRTOS_ShowSample(const AppTasks_SensorSample *Sample, uint8_t LedState)
 {
     char Line[17];
@@ -246,7 +241,7 @@ static void AppRTOS_ShowSample(const AppTasks_SensorSample *Sample, uint8_t LedS
     }
 
     Temperature = Sample->Climate.Temperature;
-    TemperatureFraction = (uint16_t)((Temperature >= 0) ? (Temperature % 10) : (-Temperature % 10));
+    TemperatureFraction = AppRTOS_TemperatureFraction(Temperature);
 
     AppRTOS_OLEDLock();
     OLED_ShowString(1, 1, "                ");
@@ -262,6 +257,7 @@ static void AppRTOS_ShowSample(const AppTasks_SensorSample *Sample, uint8_t LedS
     AppRTOS_OLEDUnlock();
 }
 
+/* 发布预采样帧，以便遥测定时与传感器 I/O 延迟解耦。 */
 static uint8_t AppRTOS_PublishSample(const AppTasks_SensorSample *Sample, uint8_t LedState, char *Response, uint16_t ResponseSize)
 {
     char Payload[160];
@@ -274,7 +270,7 @@ static uint8_t AppRTOS_PublishSample(const AppTasks_SensorSample *Sample, uint8_
     }
 
     Temperature = Sample->Climate.Temperature;
-    TemperatureFraction = (uint16_t)((Temperature >= 0) ? (Temperature % 10) : (-Temperature % 10));
+    TemperatureFraction = AppRTOS_TemperatureFraction(Temperature);
     sprintf(Payload,
             "{\"temp\":%d.%u,\"humi\":%u.%u,\"lux\":%u,\"led\":%u}",
             Temperature / 10,
@@ -289,6 +285,7 @@ static uint8_t AppRTOS_PublishSample(const AppTasks_SensorSample *Sample, uint8_
 }
 
 #if (APP_USART1_ENABLE != 0U)
+/* 打包当前的 UART 命令行并将其交给链接任务。 */
 static uint8_t AppRTOS_SubmitCommand(char *CommandBuffer, uint16_t *CommandLength)
 {
     AppTasks_WiFiCommand Command;
@@ -302,7 +299,7 @@ static uint8_t AppRTOS_SubmitCommand(char *CommandBuffer, uint16_t *CommandLengt
     Command.Command[*CommandLength] = '\0';
     *CommandLength = 0U;
 
-    /* 使用阻塞发送，确保命令不会因为瞬时队列满而悄悄丢失。 */
+    /* 手动 Wi-Fi 命令应短暂阻塞，而不是在队列满时消失。 */
     if (xQueueSend(AppWiFiCommandQueue, &Command, portMAX_DELAY) != pdPASS)
     {
         return 0U;
@@ -311,12 +308,7 @@ static uint8_t AppRTOS_SubmitCommand(char *CommandBuffer, uint16_t *CommandLengt
     return 1U;
 }
 
-/* 串口命令任务：
- * 1. 等待 USART1 接收事件信号量；
- * 2. 从串口 FIFO 中持续取字节并组装成一行命令；
- * 3. 碰到回车换行或空闲超时后，把命令投递到 AppWiFiCommandQueue；
- * 4. 真正执行命令的不是本任务，而是链路任务，目的是把“输入解析”和“ESP 操作”解耦。
- */
+/* 解析 USART1 上的用户输入，并将完整的 Wi-Fi 命令交给链接任务。 */
 static void AppFreeRTOS_CommandTask(void *Argument)
 {
     char CommandBuffer[APP_TASKS_WIFI_COMMAND_SIZE];
@@ -362,12 +354,7 @@ static void AppFreeRTOS_CommandTask(void *Argument)
 }
 #endif
 
-/* 链路任务：
- * 1. 是系统里与 ESP8266/MQTT 直接打交道的核心任务；
- * 2. 启动阶段可执行自动联网和自动连云；
- * 3. 运行阶段轮询处理三类事件：外部命令、待发布数据、USART2 回包事件；
- * 4. 通过 AppESPCommandMutex 串行化 ESP 访问，避免多个任务同时操作串口模组。
- */
+/* 在此处集中所有 ESP8266 访问，以便命令、发布和 RX 流永远不会相互竞争。 */
 static void AppFreeRTOS_LinkTask(void *Argument)
 {
     char Response[APP_TASKS_RESPONSE_SIZE];
@@ -379,7 +366,6 @@ static void AppFreeRTOS_LinkTask(void *Argument)
     AppLinkBootReady = 0U;
 
 #if (APP_WIFI_AUTO_CONNECT_ENABLE != 0U)
-    /* 给 ESP8266 上电后留一点稳定时间，再开始自动联网流程。 */
     AppRTOS_LogPrintf("[RTOS] wait ESP settle %u ms\r\n", (unsigned int)APP_WIFI_AUTO_START_DELAY_MS);
     vTaskDelay(pdMS_TO_TICKS(APP_WIFI_AUTO_START_DELAY_MS));
     xSemaphoreTake(AppESPCommandMutex, portMAX_DELAY);
@@ -439,11 +425,7 @@ static void AppFreeRTOS_LinkTask(void *Argument)
     }
 }
 
-/* 采样任务：
- * 1. 等待链路启动阶段完成，避免系统还没稳定就开始业务采集；
- * 2. 使用 vTaskDelayUntil() 做严格周期调度，减小采样周期漂移；
- * 3. 每次只保留最新采样值，因此使用 xQueueOverwrite() 覆盖旧数据。
- */
+/* 保持采样节奏稳定，并仅发布最新的样本。 */
 static void AppFreeRTOS_SensorTask(void *Argument)
 {
     TickType_t LastWakeTime;
@@ -460,18 +442,14 @@ static void AppFreeRTOS_SensorTask(void *Argument)
     {
         if (AppRTOS_ReadSensorSample(&Sample) != 0U)
         {
+            /* 遥测仅关心最新的样本，因此故意丢弃过时的样本。 */
             (void)xQueueOverwrite(AppSensorQueue, &Sample);
         }
         vTaskDelayUntil(&LastWakeTime, pdMS_TO_TICKS(APP_RTOS_SENSOR_PERIOD_MS));
     }
 }
 
-/* 遥测任务：
- * 1. 阻塞等待新的传感器数据；
- * 2. 读取共享状态判断 MQTT 是否已经可用；
- * 3. 若链路就绪且采样有效，则把数据送入发布队列，并同步刷新 OLED；
- * 4. 这样可以把“采样”和“联网发布”拆成两个阶段，减少互相阻塞。
- */
+/* 将传感器采集与发布延迟解耦，并仅在 MQTT 就绪时刷新 OLED。 */
 static void AppFreeRTOS_TelemetryTask(void *Argument)
 {
     AppTasks_SensorSample Sample;
@@ -497,12 +475,7 @@ static void AppFreeRTOS_TelemetryTask(void *Argument)
     }
 }
 
-/* RTOS 启动入口：
- * 1. 先创建任务间通信对象，包括队列、二值信号量和互斥量；
- * 2. 再创建各个业务任务，但此时任务还不会真正运行；
- * 3. 只有 main() 里调用 vTaskStartScheduler() 后，调度器才会开始切换到这些任务；
- * 4. 任一步骤失败都返回 0，交由上层统一报错并停机。
- */
+/* 创建队列、互斥锁和任务；main() 仍负责启动调度器。 */
 uint8_t AppFreeRTOS_Start(void)
 {
     AppSensorQueue = xQueueCreate(APP_RTOS_SENSOR_QUEUE_LENGTH, sizeof(AppTasks_SensorSample));
@@ -594,9 +567,7 @@ uint8_t AppFreeRTOS_Start(void)
     return 1U;
 }
 
-/* 动态内存申请失败钩子。
- * 在当前工程里通常意味着 FreeRTOS 堆太小，或者某些对象创建时栈/队列配置过大。
- */
+/* 当 FreeRTOS 堆分配失败时，在可诊断状态下停止系统。 */
 void vApplicationMallocFailedHook(void)
 {
 #if (APP_USART1_ENABLE != 0U)
@@ -609,9 +580,7 @@ void vApplicationMallocFailedHook(void)
     }
 }
 
-/* 任务栈溢出钩子。
- * 一旦进入这里，说明至少有一个任务栈深度配置不足或递归/局部变量使用异常。
- */
+/* 当任务耗尽其堆栈预算时，在可诊断状态下停止系统。 */
 void vApplicationStackOverflowHook(TaskHandle_t Task, char *TaskName)
 {
     (void)Task;
